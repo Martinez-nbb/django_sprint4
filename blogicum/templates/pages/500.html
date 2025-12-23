@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Ошибка сервера{% endblock %}
+{% block content %}
+  <div class="col d-flex justify-content-center">
+    <div class="card" style="width: 40rem;">
+      <div class="card-body">
+        <h5 class="card-title">Ошибка сервера</h5>
+        <p class="card-text">На сервере произошла ошибка. Попробуйте позже.</p>
+        <a href="{% url 'blog:index' %}" class="btn btn-primary">Вернуться на главную</a>
+      </div>
+    </div>
+  </div>
+{% endblock %}
