@@ -4,7 +4,6 @@ from adapters.model_adapter import ModelAdapter
 
 
 class UserModelAdapter(ModelAdapter):
-
     @property
     def displayed_field_name_or_value(self):
         """Gets the field name (if `self` is class adapter) or its value

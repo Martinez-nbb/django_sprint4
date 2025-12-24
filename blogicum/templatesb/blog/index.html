@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Лента записей{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <h1 class="mb-5">Лента записей</h1>
+    
+    {% if page_obj %}
+      {% for post in page_obj %}
+        <article class="mb-5">
+          <div class="card">
+            {% if post.image %}
+              <img src="{{ post.image.url }}" class="card-img-top" alt="{{ post.title }}" style="max-height: 300px; object-fit: cover;">
+            {% endif %}
+            <div class="card-body">
+              <h5 class="card-title">{{ post.title }}</h5>
+              <h6 class="card-subtitle mb-2 text-muted">
+                <small>
+                  {{ post.pub_date|date:"d E Y, H:i" }} | 
+                  {% if post.location and post.location.is_published %}
+                    {{ post.location.name }}
+                  {% else %}
+                    Планета Земля
+                  {% endif %}
+                </small>
+              </h6>
+              <p class="card-text">{{ post.text|truncatewords:50 }}</p>
+              
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <a href="{% url 'blog:post_detail' post.id %}" class="btn btn-sm btn-outline-primary">
+                    Читать полностью
+                  </a>
+                  <!-- КОЛИЧЕСТВО КОММЕНТАРИЕВ В КРУГЛЫХ СКОБКАХ -->
+                  <span class="btn btn-sm btn-outline-secondary ms-2 disabled">
+  Комментарии ({{ post.comment_count|default:0 }})
+</span>
+                </div>
+                
+                <div class="text-muted">
+                  <small>
+                    Автор: <a href="{% url 'blog:profile' post.author.username %}">@{{ post.author.username }}</a>
+                    в <a href="{% url 'blog:category_posts' post.category.slug %}">{{ post.category.title }}</a>
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+      
+      <!-- Пагинация -->
+      {% if page_obj.has_other_pages %}
+        <nav aria-label="Page navigation" class="my-5">
+          <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page=1">Первая</a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+              </li>
+            {% endif %}
+            
+            {% for i in page_obj.paginator.page_range %}
+              {% if page_obj.number == i %}
+                <li class="page-item active">
+                  <span class="page-link">{{ i }}</span>
+                </li>
+              {% else %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                </li>
+              {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Последняя</a>
+              </li>
+            {% endif %}
+          </ul>
+        </nav>
+      {% endif %}
+      
+    {% else %}
+      <div class="alert alert-info" role="alert">
+        Пока нет публикаций. Будьте первым!
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

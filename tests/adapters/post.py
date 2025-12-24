@@ -24,12 +24,20 @@ class PostModelAdapter(StudentModelAdapter):
     @property
     def _access_by_name_fields(self):
         return [
-            'id', 'created_at', 'is_published', 'title', 'text',
-            'pub_date', 'author', 'category', 'location', 'refresh_from_db']
+            'id',
+            'created_at',
+            'is_published',
+            'title',
+            'text',
+            'pub_date',
+            'author',
+            'category',
+            'location',
+            'refresh_from_db',
+        ]
 
     @property
     def AdapterFields(self) -> type:
-
         class _AdapterFields:
             image = models.ImageField()
 
@@ -42,6 +50,7 @@ class PostModelAdapter(StudentModelAdapter):
     @property
     def ItemModel(self) -> Type[Model]:
         from blog.models import Post
+
         return Post
 
     @property

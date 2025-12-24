@@ -44,11 +44,15 @@ def CommentModelAdapter(CommentModel: type) -> CommentModelAdapterT:
                 created_at = models.DateTimeField()
 
                 field_description = {
-                    'post': 'связывает модель `blog.models.Comment` '
-                            'с моделью `blog.models.Post`',
-                    'author': 'задаёт автора комментария, '
-                              'связывая модель `blog.models.Comment` '
-                              'с моделью `blog.models.Post`',
+                    'post': (
+                        'связывает модель `blog.models.Comment` '
+                        'с моделью `blog.models.Post`'
+                    ),
+                    'author': (
+                        'задаёт автора комментария, '
+                        'связывая модель `blog.models.Comment` '
+                        'с моделью `blog.models.Post`'
+                    ),
                     'text': 'задаёт текст комментария',
                     'created_at': 'задаёт дату комментария',
                 }
@@ -64,8 +68,9 @@ def CommentModelAdapter(CommentModel: type) -> CommentModelAdapterT:
             if isclass(self._item_or_cls):
                 return 'text'
             else:
-                return self.text[
-                       :COMMENT_TEXT_DISPLAY_LEN_FOR_TESTS].split('\n')[0]
+                return self.text.split('\n')[0][
+                    :COMMENT_TEXT_DISPLAY_LEN_FOR_TESTS
+                ]
 
     # checking expected fields exist
     _comment_model_cls_adapter = _CommentModelAdapter(CommentModel)

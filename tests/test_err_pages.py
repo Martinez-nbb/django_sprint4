@@ -1,3 +1,4 @@
+import importlib
 import inspect
 import os
 import uuid
@@ -19,8 +20,9 @@ def test_csrf_failure_view():
     except Exception:
         pass
     assert csrf_failure_view, (
-        'Убедитесь, что задали настройку `CSRF_FAILURE_VIEW` '
-        'в `settings.py`, и что она указывает на существующую view-функцию.')
+        'Убедитесь, что в `settings.py` задана настройка `CSRF_FAILURE_VIEW` и'
+        ' что она указывает на существующую view-функцию.'
+    )
 
     request = HttpRequest()
     request.method = 'POST'
@@ -30,13 +32,14 @@ def test_csrf_failure_view():
         response = csrf_failure_view(request)
     except Exception:
         raise AssertionError(
-            f'Убедитесь, что view-функция `{csrf_failure_view_setting}` '
-            f'работает без ошибок.')
+            f'Убедитесь, что view-функция `{csrf_failure_view_setting}`'
+            ' работает без ошибок.'
+        )
     else:
         csrf_status = 403
         assert response.status_code == csrf_status, (
-            f'Убедитесь, что view-функция `{csrf_failure_view_setting}` '
-            f'возвращает статус {csrf_status}.'
+            f'Убедитесь, что view-функция `{csrf_failure_view_setting}`'
+            f' возвращает статус {csrf_status}.'
         )
 
 
@@ -45,10 +48,18 @@ def test_custom_err_handlers(client, user_client):
     err_pages_vs_file_names = {
         404: '404.html',
         403: '403csrf.html',
-        500: '500.html'
+        500: '500.html',
     }
     for status, fname in err_pages_vs_file_names.items():
-        fpath = settings.TEMPLATES_DIR / 'pages' / fname
+        try:
+            fpath = settings.TEMPLATES_DIR / 'pages' / fname
+        except Exception as e:
+            raise AssertionError(
+                'Убедитесь, что переменная TEMPLATES_DIR в настройках проекта '
+                'является строкой (str) или объектом, соответствующим path-like интерфейсу '
+                '(например, экземпляром pathlib.Path). '
+                f'При операции конкатенации settings.TEMPLATES_DIR / "pages", возникла ошибка: {e}'
+            )
         assert os.path.isfile(fpath.resolve()), (
             f'Убедитесь, что файл шаблона `{fpath}` существует.'
         )
@@ -57,21 +68,40 @@ def test_custom_err_handlers(client, user_client):
         from blogicum.urls import handler500
     except Exception:
         raise AssertionError(
-            'Убедитесь, что задали обработчик ошибки со статусом 500 в '
-            'головном файле с маршрутами, и что в этом файле нет ошибок.'
+            'Убедитесь, что в головном файле с маршрутами нет ошибок и что в'
+            ' нём задан обработчик ошибки 500.'
         )
+
+    def check_handler_exists(handler_path):
+        module_name, func_name = handler_path.rsplit('.', 1)
+        try:
+            module = importlib.import_module(module_name)
+        except ImportError:
+            return False
+        try:
+            getattr(module, func_name)
+        except AttributeError:
+            return False
+        return True
+
+    assert check_handler_exists(handler500), (
+        'Убедитесь, что обработчик ошибки 500 в головном файле с маршрутами '
+        'указывает на существующую функцию.'
+    )
 
     try:
         from pages import views as pages_views
     except Exception:
         raise AssertionError(
-            'Убедитесь, что в файле `pages/views.py` нет ошибок.')
+            'Убедитесь, что в файле `pages/views.py` нет ошибок.'
+        )
 
     for status, fname in err_pages_vs_file_names.items():
         assert fname in inspect.getsource(pages_views), (
-            'Проверьте вью функции приложения `pages`: убедитесь, '
-            f'что для генерации страниц со статусом ответа `{status}` '
-            f'используется шаблон `pages/{fname}`')
+            'Проверьте view-функции приложения `pages`: убедитесь, что для'
+            ' генерации страниц со статусом ответа `{status}` используется'
+            ' шаблон `pages/{fname}`'
+        )
 
     # test template for 404
     debug = settings.DEBUG
@@ -83,8 +113,12 @@ def test_custom_err_handlers(client, user_client):
     expected_template = f'pages/{fname}'
     response = client.get(non_existing_url)
     assertTemplateUsed(
-        response, expected_template,
-        f'Убедитесь, что для страниц со статусом ответа `{status}` '
-        f'используется шаблон `{expected_template}`')
+        response,
+        expected_template,
+        (
+            f'Убедитесь, что для страниц со статусом ответа `{status}`'
+            f' используется шаблон `{expected_template}`'
+        ),
+    )
 
     settings.DEBUG = debug

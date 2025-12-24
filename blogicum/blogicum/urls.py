@@ -1,22 +1,30 @@
+"""blogicum URL Configuration
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/3.2/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+
 from django.contrib import admin
 from django.urls import include, path, reverse_lazy
+from django.contrib.auth.forms import UserCreationForm
+from django.views.generic.edit import CreateView
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.generic.edit import CreateView
-from django.contrib.auth.forms import UserCreationForm
 
-# Кастомные обработчики ошибок
-handler404 = 'pages.views.page_not_found'
-handler500 = 'pages.views.server_error'
 
 urlpatterns = [
-    # Основные приложения
-    path('', include('blog.urls', namespace='blog')),
-    path('pages/', include('pages.urls', namespace='pages')),
     path('admin/', admin.site.urls),
-    
-    # Аутентификация - ВАЖНО: префикс 'auth/'
-    path('auth/', include('django.contrib.auth.urls')),  # Это даст /auth/password_change/ и т.д.
+    path('', include('blog.urls', namespace='blog')),
     path(
         'auth/registration/',
         CreateView.as_view(
@@ -26,8 +34,14 @@ urlpatterns = [
         ),
         name='registration',
     ),
+    path('pages/', include('pages.urls', namespace='pages')),
+    path('auth/', include('django.contrib.auth.urls')),
 ]
 
-# Media files in development
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+handler404 = 'pages.views.page_not_found'
+
+CSRF_FAILURE_VIEW = 'pages.views.csrf_failure'
+
+handler500 = 'pages.views.handler500'
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

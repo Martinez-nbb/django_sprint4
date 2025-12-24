@@ -1,47 +1,32 @@
-<hr>
-<h5 id="comments">Комментарии ({{ post.comments.count }})</h5>
-
-{% if user.is_authenticated and can_comment %}
-  <form method="post" action="{% url 'blog:add_comment' post.id %}" class="mb-4">
+{% if user.is_authenticated %}
+  {% load django_bootstrap5 %}
+  <h5 class="mb-4">Оставить комментарий</h5>
+  <form method="post" action="{% url 'blog:add_comment' post.id %}">
     {% csrf_token %}
-    <div class="form-group mb-3">
-      <label for="id_text" class="form-label">Добавить комментарий:</label>
-      <textarea name="text" id="id_text" class="form-control" rows="3" required></textarea>
-    </div>
-    <button type="submit" class="btn btn-primary btn-sm">Отправить</button>
+    {% bootstrap_form form %}
+    {% bootstrap_button button_type="submit" content="Отправить" %}
   </form>
-{% elif user.is_authenticated %}
-  <p class="text-muted">Комментарии к этому посту закрыты.</p>
-{% else %}
-  <p class="text-muted">Чтобы оставить комментарий, <a href="{% url 'login' %}">войдите</a> или <a href="{% url 'registration' %}">зарегистрируйтесь</a>.</p>
 {% endif %}
-
+<br>
 {% for comment in comments %}
-  <div class="card mb-3">
-    <div class="card-body">
-      <div class="d-flex justify-content-between align-items-start">
-        <div>
-          <h6 class="card-subtitle mb-2 text-muted">
-            <a href="{% url 'blog:profile' comment.author.username %}" class="text-decoration-none">
-              @{{ comment.author.username }}
-            </a>
-            <small class="text-muted">• {{ comment.created_at|date:"d E Y H:i" }}</small>
-          </h6>
-          <p class="card-text">{{ comment.text|linebreaksbr }}</p>
-        </div>
-        {% if user == comment.author %}
-          <div class="btn-group btn-group-sm">
-            <a href="{% url 'blog:edit_comment' post.id comment.id %}" class="btn btn-outline-primary">
-              Редактировать
-            </a>
-            <a href="{% url 'blog:delete_comment' post.id comment.id %}" class="btn btn-outline-danger">
-              Удалить
-            </a>
-          </div>
-        {% endif %}
-      </div>
+  <div class="media mb-4">
+    <div class="media-body">
+      <h5 class="mt-0">
+        <a href="{% url 'blog:profile' comment.author.username %}" name="comment_{{ comment.id }}">
+          @{{ comment.author.username }}
+        </a>
+      </h5>
+      <small class="text-muted">{{ comment.created_at }}</small>
+      <br>
+      {{ comment.text|linebreaksbr }}
     </div>
+    {% if user == comment.author %}
+      <a class="btn btn-sm text-muted" href="{% url 'blog:edit_comment' post.id comment.id %}" role="button">
+        Отредактировать комментарий
+      </a>
+      <a class="btn btn-sm text-muted" href="{% url 'blog:delete_comment' post.id comment.id %}" role="button">
+        Удалить комментарий
+      </a>
+    {% endif %}
   </div>
-{% empty %}
-  <p class="text-muted">Пока нет комментариев. Будьте первым!</p>
 {% endfor %}

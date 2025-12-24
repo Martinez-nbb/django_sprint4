@@ -4,5 +4,4 @@ from adapters.post import PostModelAdapter
 from adapters.user import UserModelAdapter
 
 CommentModelAdapterT = TypeVar('CommentModelAdapterT', bound=type)
-ModelAdapterT = Union[
-    CommentModelAdapterT, PostModelAdapter, UserModelAdapter]
+ModelAdapterT = Union[CommentModelAdapterT, PostModelAdapter, UserModelAdapter]
