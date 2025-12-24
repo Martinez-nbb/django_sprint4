@@ -4,21 +4,20 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-
-class BasePublished(models.Model):
-    is_published = models.BooleanField(
-        default=True,
-        verbose_name=('Опубликовано'),
-        help_text='Снимите галочку, чтобы скрыть.',
+class BaseCreatedAt(models.Model):
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name=('Добавлено')
     )
 
     class Meta:
         abstract = True
 
 
-class BaseCreatedAt(models.Model):
-    created_at = models.DateTimeField(
-        auto_now_add=True, verbose_name=('Добавлено')
+class BasePublished(models.Model):
+    is_published = models.BooleanField(
+        help_text='Снимите галочку, чтобы скрыть.',
+        default=True,
+        verbose_name=('Опубликовано'),
     )
 
     class Meta:
@@ -31,7 +30,7 @@ class Category(BasePublished, BaseCreatedAt):
     slug = models.SlugField(
         unique=True,
         verbose_name='Идентификатор',
-        help_text='Идентификатор страницы для URL; разрешены \
+        help_text='Идентификатор страницы для URL; разрешаются \
 символы латиницы, цифры, дефис и подчёркивание.',
     )
 
@@ -57,11 +56,6 @@ class Location(BasePublished, BaseCreatedAt):
 class Post(BasePublished, BaseCreatedAt):
     title = models.CharField(max_length=256, verbose_name=('Заголовок'))
     text = models.TextField(verbose_name=('Текст'))
-    pub_date = models.DateTimeField(
-        verbose_name=('Дата и время публикации'),
-        help_text='Если установить дату и время в \
-будущем — можно делать отложенные публикации.',
-    )
     author = models.ForeignKey(
         User, verbose_name=('Автор публикации'), on_delete=models.CASCADE
     )
@@ -72,13 +66,18 @@ class Post(BasePublished, BaseCreatedAt):
         null=True,
         blank=True,
     )
+    pub_date = models.DateTimeField(
+        verbose_name=('Дата и время публикации'),
+        help_text='Если установить дату и время в будущем — можно дел\
+            ать отложенные публикации.',
+    )
+    image = models.ImageField('Фото', upload_to='post_images', blank=True)
     category = models.ForeignKey(
         Category,
         verbose_name=('Категория'),
         on_delete=models.SET_NULL,
         null=True,
     )
-    image = models.ImageField('Фото', upload_to='post_images', blank=True)
 
     class Meta:
         verbose_name = 'публикация'
@@ -95,14 +94,13 @@ class Comment(BasePublished, BaseCreatedAt):
         related_name='comments',
         verbose_name='Публикация',
     )
+    text = models.TextField(verbose_name='Текст комментария')
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='comments',
         verbose_name='Автор комментария',
     )
-    text = models.TextField(verbose_name='Текст комментария')
-
     class Meta:
         verbose_name = 'комментарий'
         verbose_name_plural = 'Комментарии'

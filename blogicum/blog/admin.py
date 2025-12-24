@@ -1,6 +1,6 @@
-from django.contrib import admin
 
-from .models import Category, Location, Post, Comment
+from .models import Post, Category, Location, Comment
+from django.contrib import admin
 
 # Register your models here.
 

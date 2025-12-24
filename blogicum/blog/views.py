@@ -1,5 +1,9 @@
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
+from django.contrib.auth import get_user_model
+from .forms import PostForm, CommentForm
+from django.urls import reverse
+from blog.forms import UserUpdateForm
 from django.views.generic import (
     ListView,
     CreateView,
@@ -9,21 +13,19 @@ from django.views.generic import (
 )
 from django.contrib.auth.mixins import LoginRequiredMixin
 from blog.models import Post, Category, Comment
-from django.contrib.auth import get_user_model
-from .forms import PostForm, CommentForm
-from django.urls import reverse
-from blog.forms import UserUpdateForm
 from django.db import models
 from .utils import annotate_pub_coms, order_date
+
+
 
 
 User = get_user_model()
 
 
 class ProfileListView(ListView):
-    model = Post
     template_name = 'blog/profile.html'
     paginate_by = 10
+    model = Post
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -169,9 +171,9 @@ class CategoryListView(ListView):
 
 class CommentUpdateView(LoginRequiredMixin, UpdateView):
     model = Comment
+    pk_url_kwarg = 'comment_id'
     fields = ['text']
     template_name = 'blog/comment.html'
-    pk_url_kwarg = 'comment_id'
 
     def get_object(self, queryset=None):
         post_id = self.kwargs['post_id']
@@ -226,34 +228,33 @@ class PostDetailView(DetailView):
     pk_url_kwarg = 'post_id'
 
     def get_queryset(self):
-        base_qs = Post.objects.select_related('author', 'category')
+        base_qst = Post.objects.select_related('author', 'category')
 
         if self.request.user.is_staff:
-            return base_qs
+            return base_qst
 
         if self.request.user.is_authenticated:
-            return base_qs.filter(
+            return base_qst.filter(
                 models.Q(
                     is_published=True,
-                    category__is_published=True,
                     pub_date__lte=timezone.now(),
+                    category__is_published=True
                 )
                 | models.Q(author=self.request.user)
             )
         else:
-            return base_qs.filter(
+            return base_qst.filter(
                 is_published=True,
                 category__is_published=True,
                 pub_date__lte=timezone.now(),
             )
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
         post = self.object
+        context = super().get_context_data(**kwargs)
 
         context['comments'] = (
-            post.comments.filter(is_published=True)
-            .select_related('author')
+            post.comments.filter(is_published=True).select_related('author')
             .order_by('created_at')
         )
 

@@ -1,4 +1,4 @@
-from django.db.models import Count, Q
+from django.db.models import Q, Count
 
 def order_date(queryset):
     return queryset.order_by('-pub_date')

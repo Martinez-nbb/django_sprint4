@@ -5,6 +5,12 @@ from .models import Post, Comment
 User = get_user_model()
 
 
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        field = '__all__'
+        exclude = ('author', 'pub_date', 'post')
+
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
@@ -15,15 +21,7 @@ class PostForm(forms.ModelForm):
                 attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'
             )
         }
-
-
-class CommentForm(forms.ModelForm):
-    class Meta:
-        model = Comment
-        field = '__all__'
-        exclude = ('author', 'pub_date', 'post')
-
-
+        
 class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
