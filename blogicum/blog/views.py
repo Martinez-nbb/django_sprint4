@@ -1,20 +1,20 @@
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
+from blog.forms import UserUpdateForm
+from django.views.generic import (
+    CreateView,
+    DetailView,
+    ListView,
+    UpdateView,
+    DeleteView,
+)
+from django.db import models
+from .utils import annotate_pub_coms, order_date
+from django.contrib.auth.mixins import LoginRequiredMixin
+from blog.models import Post, Category, Comment
 from django.contrib.auth import get_user_model
 from .forms import PostForm, CommentForm
 from django.urls import reverse
-from blog.forms import UserUpdateForm
-from django.views.generic import (
-    ListView,
-    CreateView,
-    UpdateView,
-    DeleteView,
-    DetailView,
-)
-from django.contrib.auth.mixins import LoginRequiredMixin
-from blog.models import Post, Category, Comment
-from django.db import models
-from .utils import annotate_pub_coms, order_date
 
 
 

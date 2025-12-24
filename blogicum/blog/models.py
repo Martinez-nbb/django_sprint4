@@ -15,7 +15,7 @@ class BaseCreatedAt(models.Model):
 
 class BasePublished(models.Model):
     is_published = models.BooleanField(
-        help_text='Снимите галочку, чтобы скрыть.',
+        help_text='Снимите галочку, чтобы скрыть. ',
         default=True,
         verbose_name=('Опубликовано'),
     )
