@@ -14,7 +14,7 @@ from .forms import PostForm, CommentForm
 from django.urls import reverse
 from blog.forms import UserUpdateForm
 from django.db import models
-from .utils import annotate_published_comments, ordering_by_pub_date
+from .utils import annotate_pub_coms, order_date
 
 
 User = get_user_model()
@@ -45,8 +45,8 @@ class ProfileListView(ListView):
             )
 
         queryset = queryset.select_related('author', 'category')
-        queryset = annotate_published_comments(queryset)
-        return ordering_by_pub_date(queryset)
+        queryset = annotate_pub_coms(queryset)
+        return order_date(queryset)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -83,8 +83,7 @@ class PostDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_object(self, queryset=None):
         post_id = self.kwargs['post_id']
-        post = get_object_or_404(Post, pk=post_id, author=self.request.user)
-        return post
+        return get_object_or_404(Post, pk=post_id, author=self.request.user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -138,8 +137,8 @@ class IndexListView(ListView):
             is_published=True,
             category__is_published=True,
         ).select_related('author', 'category')
-        queryset = annotate_published_comments(queryset)
-        return ordering_by_pub_date(queryset)
+        queryset = annotate_pub_coms(queryset)
+        return order_date(queryset)
 
 
 class CategoryListView(ListView):
@@ -159,8 +158,8 @@ class CategoryListView(ListView):
             is_published=True,
             category__is_published=True,
         ).select_related('author', 'category')
-        queryset = annotate_published_comments(queryset)
-        return ordering_by_pub_date(queryset)
+        queryset = annotate_pub_coms(queryset)
+        return order_date(queryset)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
