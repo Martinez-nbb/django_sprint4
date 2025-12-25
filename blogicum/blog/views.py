@@ -9,15 +9,12 @@ from django.views.generic import (
     DeleteView,
 )
 from django.db import models
-from .utils import annotate_pub_coms, order_date
+from .utils import annotate_pub_coms, order_date, filter_published_posts
 from django.contrib.auth.mixins import LoginRequiredMixin
 from blog.models import Post, Category, Comment
 from django.contrib.auth import get_user_model
 from .forms import PostForm, CommentForm
 from django.urls import reverse
-
-
-
 
 User = get_user_model()
 
@@ -39,12 +36,8 @@ class ProfileListView(ListView):
         ):
             queryset = qs.filter(author=self.profile)
         else:
-            queryset = qs.filter(
-                author=self.profile,
-                is_published=True,
-                pub_date__lte=timezone.now(),
-                category__is_published=True,
-            )
+            queryset = qs.filter(author=self.profile)
+            queryset = filter_published_posts(queryset)
 
         queryset = queryset.select_related('author', 'category')
         queryset = annotate_pub_coms(queryset)
@@ -134,11 +127,7 @@ class IndexListView(ListView):
 
     def get_queryset(self):
         qs = super().get_queryset()
-        queryset = qs.filter(
-            pub_date__lte=timezone.now(),
-            is_published=True,
-            category__is_published=True,
-        ).select_related('author', 'category')
+        queryset = filter_published_posts(qs).select_related('author', 'category')
         queryset = annotate_pub_coms(queryset)
         return order_date(queryset)
 
@@ -154,12 +143,8 @@ class CategoryListView(ListView):
             Category, slug=category_slug, is_published=True
         )
         qs = super().get_queryset()
-        queryset = qs.filter(
-            category=self.category,
-            pub_date__lte=timezone.now(),
-            is_published=True,
-            category__is_published=True,
-        ).select_related('author', 'category')
+        queryset = qs.filter(category=self.category)
+        queryset = filter_published_posts(queryset).select_related('author', 'category')
         queryset = annotate_pub_coms(queryset)
         return order_date(queryset)
 
@@ -230,9 +215,6 @@ class PostDetailView(DetailView):
     def get_queryset(self):
         base_qst = Post.objects.select_related('author', 'category')
 
-        if self.request.user.is_staff:
-            return base_qst
-
         if self.request.user.is_authenticated:
             return base_qst.filter(
                 models.Q(
@@ -243,11 +225,7 @@ class PostDetailView(DetailView):
                 | models.Q(author=self.request.user)
             )
         else:
-            return base_qst.filter(
-                is_published=True,
-                category__is_published=True,
-                pub_date__lte=timezone.now(),
-            )
+            return filter_published_posts(base_qst)
 
     def get_context_data(self, **kwargs):
         post = self.object
